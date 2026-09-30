@@ -87,7 +87,7 @@ export function buildGraveyard(mats: Materials, pool: LightPool, quality: Qualit
   group.add(buildLand(mats, quality));
 
   // luces del área: cielo azul grisáceo + luna con sombras que sigue al jugador
-  group.add(new THREE.HemisphereLight(0x566690, 0x1a1510, 0.62));
+  group.add(new THREE.HemisphereLight(0x5a6a9c, 0x221a13, 0.78));
   const moon = new THREE.DirectionalLight(0x86a0e0, 0.9);
   moon.castShadow = true;
   const ms = quality.shadowMap;

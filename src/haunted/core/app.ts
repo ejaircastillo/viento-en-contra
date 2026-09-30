@@ -76,7 +76,7 @@ export class App {
 
   /** Cada medio segundo: si va lento baja la resolución; si sobra, la sube de a poco. */
   private adapt(): void {
-    if (!this.autoScale || this.userRatio !== null) return;
+    if (!this.autoScale || this.userRatio !== null || this.time < 6 || document.hidden) return; // los primeros segundos compilan shaders
     this.cool = Math.max(0, this.cool - 0.5);
     if (this.fps < 40) [this.slow, this.fast] = [this.slow + 0.5, 0];
     else if (this.fps > 57) [this.slow, this.fast] = [0, this.fast + 0.5];
@@ -107,9 +107,10 @@ export class App {
       if (!this.running) return;
       const now = performance.now();
       const dt = Math.min(0.05, Math.max(0.0005, (now - this.last) / 1000));
+      const raw = (now - this.last) / 1000;
       this.last = now;
       this.time += dt;
-      this.fpsAcc.t += dt;
+      this.fpsAcc.t += Math.min(0.5, Math.max(dt, raw)); // fps reales (dt va recortado para la simulación)
       this.fpsAcc.n++;
       if (this.fpsAcc.t >= 0.5) {
         this.fps = this.fpsAcc.n / this.fpsAcc.t;

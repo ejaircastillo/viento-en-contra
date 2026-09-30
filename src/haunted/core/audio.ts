@@ -51,7 +51,7 @@ export class Sound {
     this.area = a;
     if (!this.ctx) return;
     const now = this.ctx.currentTime;
-    this.drone?.gain.setTargetAtTime(a === 'crypt' ? 0.05 : 0, now, 0.5);
+    this.drone?.gain.setTargetAtTime(a === 'crypt' ? 0.035 : 0, now, 0.5);
   }
 
   private build(): void {
@@ -129,9 +129,9 @@ export class Sound {
     const gust = 0.5 + 0.3 * Math.sin(this.t * 0.21) + 0.2 * Math.sin(this.t * 0.57 + 1.3);
     const outdoors = this.area === 'graveyard' ? 1 : 0.16;
     this.wind.filter.frequency.setTargetAtTime(220 + 420 * gust, now, 0.3);
-    this.wind.gain.gain.setTargetAtTime((0.05 + 0.11 * gust) * outdoors, now, 0.3);
+    this.wind.gain.gain.setTargetAtTime((0.12 + 0.22 * gust) * outdoors, now, 0.3);
     const f = this.area === 'graveyard' ? fire : 0.22;
-    this.fireBed?.gain.setTargetAtTime(f * 0.16, now, 0.25);
+    this.fireBed?.gain.setTargetAtTime(f * 0.3, now, 0.25);
     this.nextCrackle -= dt;
     if (this.nextCrackle <= 0 && f > 0.03) {
       this.crackle(f);
@@ -187,7 +187,7 @@ export class Sound {
   }
 
   private crackle(f: number): void {
-    this.noiseBurst(0.012 + Math.random() * 0.035, 1800 + Math.random() * 2600, 'highpass', 0.05 + 0.12 * f * Math.random(), 0, 0.7);
+    this.noiseBurst(0.012 + Math.random() * 0.035, 1800 + Math.random() * 2600, 'highpass', 0.06 + 0.2 * f * Math.random(), 0, 0.7);
   }
 
   private owl(): void {

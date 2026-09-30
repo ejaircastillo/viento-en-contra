@@ -113,8 +113,15 @@ export function makeBush(ctx: BuildCtx, x: number, z: number, s = 1): THREE.Mesh
 
 /** Hojarasca: hojas planas naranjas, amarillas y rojas repartidas al pie de los árboles y sobre los caminos. */
 export function makeLeafLitter(ctx: BuildCtx, centers: [number, number, number][], perCenter = 60): THREE.InstancedMesh {
-  const leaf = new THREE.PlaneGeometry(0.2, 0.13);
-  leaf.rotateX(-Math.PI / 2);
+  // hoja en forma de ojiva (seis puntas alrededor de un centro apenas levantado), no un rectángulo
+  const outline: [number, number][] = [[0.13, 0], [0.05, 0.052], [-0.06, 0.05], [-0.13, 0], [-0.06, -0.05], [0.05, -0.052]];
+  const pos: number[] = [];
+  outline.forEach((a, i) => {
+    const b = outline[(i + 1) % outline.length];
+    pos.push(0, 0.014, 0, a[0], 0, a[1], b[0], 0, b[1]);
+  });
+  const leaf = new THREE.BufferGeometry();
+  leaf.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
   const geo = merge([leaf]);
   const cols = ['#b4561e', '#d48a26', '#8c2f1c', '#c9a13a', '#7a4a1c', '#a8401a'].map((c) => new THREE.Color(c));
   const spots: Spot[] = [];
@@ -125,7 +132,7 @@ export function makeLeafLitter(ctx: BuildCtx, centers: [number, number, number][
       spots.push({ x: cx + Math.cos(a) * d, z: cz + Math.sin(a) * d, rot: ctx.rnd() * 6, sx: 0.8 + ctx.rnd() * 1.1, sy: 1, color: cols[Math.floor(ctx.rnd() * cols.length)].clone().multiplyScalar(1.0 + ctx.rnd() * 0.5) });
     }
   // Lambert (sin brillo especular): con albedo tan oscuro el reflejo azul de la luna se comía el color de las hojas
-  const mesh = instanced(geo, new THREE.MeshLambertMaterial({ vertexColors: true, side: THREE.DoubleSide }), spots, 0.04);
+  const mesh = instanced(geo, new THREE.MeshLambertMaterial({ vertexColors: true, side: THREE.DoubleSide, emissive: 0x2a140a }), spots, 0.04);
   mesh.receiveShadow = true;
   return mesh;
 }

@@ -163,8 +163,8 @@ export function makeFence(ctx: BuildCtx, pts: [number, number][], o: FenceOpts =
       const ph = broken ? 0.45 + rnd() * 0.4 : h + 0.32;
       const lean = broken ? (rnd() - 0.5) * 0.35 : 0;
       const post = new RoundedBoxGeometry(0.36, ph, 0.36, 2, 0.04);
-      stone.push(prep(xf(post, [px, ph / 2, pz], [lean, yaw, lean * 0.6]), (_x, y) => (y > ph * 0.85 ? '#bdb8aa' : '#8f8b7e')));
-      if (!broken) stone.push(prep(xf(new RoundedBoxGeometry(0.46, 0.1, 0.46, 2, 0.03), [px, ph + 0.05, pz], [0, yaw, 0]), '#a9a497'));
+      stone.push(prep(xf(post, [px, ph / 2, pz], [lean, yaw, lean * 0.6]), (_x, y) => (y > ph * 0.85 ? '#8f836c' : '#6a604f')));
+      if (!broken) stone.push(prep(xf(new RoundedBoxGeometry(0.46, 0.1, 0.46, 2, 0.03), [px, ph + 0.05, pz], [0, yaw, 0]), '#857a66'));
     }
     // travesaños
     for (const ry of [h * 0.3, h * 0.78]) iron.push(prep(xf(rail, [(x0 + x1) / 2, ry, (z0 + z1) / 2], [0, yaw, 0], [len, 1, 1]), '#3b3f49'));

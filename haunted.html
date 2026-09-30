@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="es-AR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#03040a" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta
+      name="description"
+      content="Fantasma en trámite — cementerio en 3D con three.js. Prototipo de estilo y jugabilidad de Viento en Contra."
+    />
+    <title>Fantasma en trámite</title>
+  </head>
+  <body>
+    <div id="haunted">
+      <canvas id="view"></canvas>
+      <div id="tags"></div>
+      <div id="hud"></div>
+      <div id="panels"></div>
+      <div id="stick"><div class="knob"></div></div>
+      <div id="fade"></div>
+      <div id="loading">
+        <div class="box">
+          <div class="ttl">Fantasma en trámite</div>
+          <div class="bar"><i></i></div>
+          <div class="msg">Encendiendo las velas…</div>
+        </div>
+      </div>
+    </div>
+    <noscript>Este juego necesita JavaScript.</noscript>
+    <script type="module" src="/src/haunted/main.ts"></script>
+  </body>
+</html>

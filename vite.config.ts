@@ -1,4 +1,5 @@
 import { defineConfig } from 'vite';
+import { fileURLToPath } from 'node:url';
 
 // Decisiones:
 // - base './' → el build funciona servido desde cualquier subcarpeta (hosting estático, itch.io, GitHub Pages).
@@ -22,6 +23,13 @@ export default defineConfig({
     target: 'es2020',
     chunkSizeWarningLimit: 2000,
     assetsInlineLimit: 0,
+    // dos páginas: el juego 2D (index.html) y el prototipo 3D con three.js (haunted.html)
+    rollupOptions: {
+      input: {
+        main: fileURLToPath(new URL('./index.html', import.meta.url)),
+        haunted: fileURLToPath(new URL('./haunted.html', import.meta.url)),
+      },
+    },
   },
   worker: {
     format: 'es',

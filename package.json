@@ -1,0 +1,24 @@
+{
+  "name": "rio-gallegos-viento-en-contra",
+  "private": true,
+  "version": "0.2.0",
+  "type": "module",
+  "description": "Río Gallegos: Viento en Contra — Demo 0.2 (Capítulos 1 y 2). Aventura satírica en pixel art isométrico, mobile-first.",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "manifest": "node scripts/gen-manifest.mjs"
+  },
+  "dependencies": {
+    "@fontsource/pixelify-sans": "^5.3.0",
+    "phaser": "3.90.0"
+  },
+  "devDependencies": {
+    "typescript": "~5.9.3",
+    "vite": "^8.3.0",
+    "vitest": "^5.0.1"
+  }
+}

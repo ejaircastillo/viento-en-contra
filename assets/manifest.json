@@ -1,0 +1,313 @@
+{
+  "version": 1,
+  "about": "Fuente de verdad de assets. status 'placeholder' = generado por código; 'final' + path = se carga el archivo. Regenerar la tabla: npm run manifest",
+  "assets": [
+    {
+      "key": "char.municipal",
+      "category": "characters",
+      "status": "placeholder",
+      "source": "procedural",
+      "generator": "character",
+      "path": "characters/municipal.png",
+      "kind": "spritesheet",
+      "frame": {
+        "w": 16,
+        "h": 24,
+        "count": 14
+      },
+      "anchor": {
+        "x": 8,
+        "y": 23
+      },
+      "scene": "boot",
+      "usage": "Protagonista A: Diego Barría (empleado municipal, Habilitaciones)",
+      "dimensions": "16x24 por cuadro · tira 224x24",
+      "animations": [
+        "frente quieto 0-1",
+        "frente camina 2-5",
+        "espalda quieto 6-7",
+        "espalda camina 8-11",
+        "teléfono 12",
+        "sentado 13"
+      ],
+      "notes": "Frente mira abajo-derecha (se espeja para abajo-izquierda). Pies en y=23, centro x=8."
+    },
+    {
+      "key": "char.emprendedor",
+      "category": "characters",
+      "status": "placeholder",
+      "source": "procedural",
+      "generator": "character",
+      "path": "characters/emprendedor.png",
+      "kind": "spritesheet",
+      "frame": {
+        "w": 16,
+        "h": 24,
+        "count": 14
+      },
+      "anchor": {
+        "x": 8,
+        "y": 23
+      },
+      "scene": "boot",
+      "usage": "Protagonista B: Nahuel Cárcamo (kiosquero, habilitación en trámite)",
+      "dimensions": "16x24 por cuadro · tira 224x24",
+      "animations": [
+        "igual layout que char.municipal"
+      ],
+      "notes": "Gorro rojo y campera inflable mostaza: rasgos para distinguirlo de lejos."
+    },
+    {
+      "key": "char.kid_municipal",
+      "category": "characters",
+      "status": "placeholder",
+      "source": "procedural",
+      "generator": "character",
+      "path": "characters/kid_municipal.png",
+      "kind": "spritesheet",
+      "frame": {
+        "w": 16,
+        "h": 24,
+        "count": 14
+      },
+      "anchor": {
+        "x": 8,
+        "y": 23
+      },
+      "scene": "boot",
+      "usage": "Tomi, hijo de Diego (guardapolvo blanco)",
+      "dimensions": "16x24 por cuadro (cuerpo de ~15 px)",
+      "animations": [
+        "igual layout que char.municipal"
+      ],
+      "notes": "Nombre provisorio (spec §30)."
+    },
+    {
+      "key": "char.kid_emprendedor",
+      "category": "characters",
+      "status": "placeholder",
+      "source": "procedural",
+      "generator": "character",
+      "path": "characters/kid_emprendedor.png",
+      "kind": "spritesheet",
+      "frame": {
+        "w": 16,
+        "h": 24,
+        "count": 14
+      },
+      "anchor": {
+        "x": 8,
+        "y": 23
+      },
+      "scene": "boot",
+      "usage": "Benja, hijo de Nahuel (guardapolvo blanco)",
+      "dimensions": "16x24 por cuadro",
+      "animations": [
+        "igual layout que char.municipal"
+      ],
+      "notes": "Nombre provisorio (spec §30)."
+    },
+    {
+      "key": "char:*",
+      "category": "characters",
+      "status": "placeholder",
+      "source": "procedural",
+      "usage": "NPCs (hermanas, Doña Elba, Don Tito, portero, agente de tránsito, padres, cajera, Mirta, Ponce, vecinos, ciudadanos, peatones)",
+      "dimensions": "16x24 por cuadro · 14 cuadros",
+      "animations": [
+        "igual layout que char.municipal"
+      ],
+      "notes": "Familia generada desde cada 'look' en content/chapter01/npcs.ts. Para arte final: agregar sprite: 'char.<id>' al NPC y una entrada con esa clave."
+    },
+    {
+      "key": "portrait:*",
+      "category": "ui",
+      "status": "placeholder",
+      "source": "procedural",
+      "usage": "Retratos de diálogo y selección de personaje",
+      "dimensions": "32x32 (se muestran a 3x)",
+      "notes": "Generados desde el mismo 'look' del personaje (engine/assets/gen/characters.ts#drawPortrait)."
+    },
+    {
+      "key": "veh:*",
+      "category": "vehicles",
+      "status": "placeholder",
+      "source": "procedural",
+      "usage": "Autos del jugador, tránsito y estacionados: sedan, hatch, pickup, suv, van, bus, truck, police, tow",
+      "dimensions": "cuadro variable (sedan ~40x30, bus ~66x55) · hoja de 8x2",
+      "animations": [
+        "fila 0: 8 direcciones (0=E, 2=S, 4=W, 6=N)",
+        "fila 1: frenando / balizas / sirena"
+      ],
+      "notes": "Clave exacta: veh:<modelo>:<color>:<acento>:<d si chocado>. Ej. auto de Diego = veh:sedan:carBlue::  · utilitario de Nahuel = veh:van:carWhite::"
+    },
+    {
+      "key": "ground",
+      "category": "environments",
+      "status": "placeholder",
+      "source": "procedural",
+      "usage": "Suelo por chunks de 16x16 baldosas: asfalto, veredas, estepa, estuario, barro, patios, adoquines, pisos interiores",
+      "dimensions": "baldosa iso 32x16 · chunk 512x256",
+      "notes": "Pintado por píxel en un Web Worker (engine/world/ground.ts). Reemplazo final: tileset por tipo de suelo (ver docs/ARQUITECTURA.md §Suelo)."
+    },
+    {
+      "key": "bld:*",
+      "category": "environments",
+      "status": "placeholder",
+      "source": "procedural",
+      "usage": "Edificios: casas con chapa y chiflonera, escuela, Municipalidad, sucursales Acá Nomás, locales cerrados, Radio 89",
+      "dimensions": "variable según huella (ancho = (w+d)*16 px)",
+      "notes": "Ancla = esquina superior de la huella. Se dibujan en tiras de 8 px para el orden de profundidad."
+    },
+    {
+      "key": "prop:*",
+      "category": "environments",
+      "status": "placeholder",
+      "source": "procedural",
+      "usage": "Postes, luminarias, semáforos (4 cuadros), PARE, carteles de calle, álamos (2), matas de coirón (2), cercos, vallas, conos, bancos, garita, contenedores, banderas (3), letras RÍO GALLEGOS, flamencos (2), bolsas (4), perro (6), obra (mezcladora, arena, ladrillos), antena Radio 89 (2), tendedero (3)",
+      "dimensions": "variable",
+      "notes": "Catálogo: engine/world/PropRegistry.ts. Ancla en el punto de apoyo (o esquina de huella si tiene fp)."
+    },
+    {
+      "key": "prop:interiores",
+      "category": "environments",
+      "status": "placeholder",
+      "source": "procedural",
+      "usage": "Escritorios con CRT y mate, sillas, mostrador con vidrio, dispensador de números, visor LED de turnos, archivos, expedientes, dispenser de agua, planta, góndolas, heladeras, caja, radio portátil",
+      "dimensions": "variable",
+      "notes": "content/chapter01/interiors.ts define disposición; paredes: clave wall:<interior>."
+    },
+    {
+      "key": "prop:capitulo2",
+      "category": "environments",
+      "status": "placeholder",
+      "source": "procedural",
+      "usage": "Capítulo 2: puesto de feria (toldo y mercadería según el rubro; 2 cuadros), escenario de la feria (3 cuadros: cinta, cinta cortada, telón volado), telón que vuela (banner:fly), Estación Móvil de Ensayos Eólicos (2 cuadros: ventilador y anemómetro), túnel de viento averiado, garrafa vacía, escalera y ascensor \"pronto\" de la Municipalidad",
+      "dimensions": "puesto 58x97 · escenario 132x144 · telón 92x26 · estación 85x113 · túnel 93x97 · garrafa 12x22",
+      "animations": [
+        "puesto: toldo al viento (2 cuadros)",
+        "escenario: 0 cinta, 1 cortada, 2 sin telón",
+        "estación: aspas del ventilador (2 cuadros)"
+      ],
+      "notes": "content/chapter02/props.ts. Los tableros de texto se dibujan de frente a la cámara y tienen que caber dentro del lienzo del sprite. Claves con hash de parámetros: ver __vec.keys()."
+    },
+    {
+      "key": "fx:*",
+      "category": "environments",
+      "status": "placeholder",
+      "source": "procedural",
+      "usage": "Estelas de viento, aguanieve, flechas de ruta (8 dir), sombras de nubes, humo, cables entre postes, bolsas volando",
+      "dimensions": "chicas (6-22 px) · nubes 220x110",
+      "notes": "engine/assets/gen/fx.ts"
+    },
+    {
+      "key": "logo:pp",
+      "category": "brands",
+      "status": "placeholder",
+      "source": "procedural",
+      "usage": "Patagonia Puede (empresa provincial ficticia): insignia montaña + sol",
+      "dimensions": "cuadrado escalable (8-16 px)",
+      "notes": "Original: no copia identidades reales. Submarcas previstas: Alimentos, Digital, Hogar, Obras."
+    },
+    {
+      "key": "logo:an",
+      "category": "brands",
+      "status": "placeholder",
+      "source": "procedural",
+      "usage": "Acá Nomás (cadena ficticia): marcador naranja 'acá'",
+      "dimensions": "escalable (7-12 px)",
+      "notes": "Nombre de trabajo de la spec. Paleta naranja/crema propia."
+    },
+    {
+      "key": "logo:r89",
+      "category": "brands",
+      "status": "placeholder",
+      "source": "procedural",
+      "usage": "Radio 89 (radio ficticia)",
+      "dimensions": "escalable",
+      "notes": "Slogan: 'La que se escucha aunque sople'."
+    },
+    {
+      "key": "logo:muni",
+      "category": "brands",
+      "status": "placeholder",
+      "source": "procedural",
+      "usage": "Gráfica municipal ficticia 'Ciudad en Movimiento'",
+      "dimensions": "escalable",
+      "notes": "No reproduce escudos ni logos oficiales."
+    },
+    {
+      "key": "prop:bb_pp_cd2",
+      "category": "brands",
+      "status": "placeholder",
+      "source": "procedural",
+      "usage": "Cartel de obra obligatorio: PATAGONIA PUEDE · PRÓXIMAMENTE · CENTRO DE DISTRIBUCIÓN 2",
+      "dimensions": "valla frontal ~114 x 49 px sobre 2 postes (huella 7 x 0.12 baldosas)",
+      "notes": "De frente a la cámara, texto derecho; visible sobre Alcorta durante el desvío. El ancla es la esquina (0,0) de la huella."
+    },
+    {
+      "key": "prop:carteles_marca",
+      "category": "brands",
+      "status": "placeholder",
+      "source": "procedural",
+      "usage": "Vallas frontales Radio 89 y Acá Nomás; carteles de techo de las sucursales Acá Nomás; placas Patagonia Puede Digital (fotocontrol), Obras (bacheo), cartel de obra, Plan Semáforo Inteligente, calle cerrada, desvío, PARO, protesta del bache",
+      "dimensions": "variable",
+      "notes": "content/brands.ts. Los carteles importantes tienen además un rótulo HTML (lectura ampliada) definido con `caption` en el mapa."
+    },
+    {
+      "key": "font.pixelify",
+      "category": "ui",
+      "status": "final",
+      "source": "file",
+      "usage": "Tipografía de la interfaz (Pixelify Sans, @fontsource)",
+      "dimensions": "400 y 700",
+      "notes": "Licencia SIL Open Font License: redistribuible. Se empaqueta en el build."
+    },
+    {
+      "key": "ui.hud",
+      "category": "ui",
+      "status": "placeholder",
+      "source": "css",
+      "usage": "HUD (reloj, objetivo, radio, botones táctiles, joystick), diálogo, pensamientos, teléfono, menús, pantalla Continuará",
+      "dimensions": "responsive (mobile-first)",
+      "notes": "src/styles/game.css · variables de color en :root."
+    },
+    {
+      "key": "doc.*",
+      "category": "documents",
+      "status": "placeholder",
+      "source": "css",
+      "usage": "Boleta municipal, comunicado de PARO, número de turno, afiche de ordenanza, carpeta del kiosco (8 documentos), pantalla CRT del sistema",
+      "dimensions": "responsive",
+      "notes": "engine/ui/Overlays.ts; textos en content/chapter01/config.ts y flow.ts."
+    },
+    {
+      "key": "music.*",
+      "category": "audio",
+      "status": "placeholder",
+      "source": "synth",
+      "usage": "Tema de título, música de radio (3 temas: incluye 'Sensación térmica'), feria del Capítulo 2, interior (espera), cierre 'Continuará'",
+      "dimensions": "loops de 4 compases",
+      "notes": "Secuenciador WebAudio: content/music.ts. La música de manejo suena 'por la radio' (filtrada)."
+    },
+    {
+      "key": "sfx.*",
+      "category": "audio",
+      "status": "placeholder",
+      "source": "synth",
+      "kind": "audio",
+      "usage": "door_open, door_close, car_door, brake, horn, blinker, phone_ring, phone_pickup, notify, paper, stamp, step, ui_click, ui_confirm, ui_back, radio_on, car_alarm, ticket, error_beep, murmur, dog_bark, gust, whoosh, register, thud",
+      "dimensions": "one-shots",
+      "notes": "Para reemplazar: entrada con key 'sfx.<nombre>', kind 'audio', status 'final', path 'audio/<nombre>.ogg'."
+    },
+    {
+      "key": "amb.*",
+      "category": "audio",
+      "status": "placeholder",
+      "source": "synth",
+      "usage": "Viento con ráfagas (identidad sonora), motor según velocidad, zumbido de tubo fluorescente, locutor de radio murmurado, voces de diálogo",
+      "dimensions": "continuos",
+      "notes": "engine/audio/AudioEngine.ts"
+    }
+  ]
+}

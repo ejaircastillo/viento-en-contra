@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="es-AR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#20262e" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta
+      name="description"
+      content="Río Gallegos: Viento en Contra — aventura satírica en pixel art. Demo 0.2, Capítulos 1 y 2."
+    />
+    <title>Río Gallegos: Viento en Contra</title>
+  </head>
+  <body>
+    <div id="app">
+      <div id="game"></div>
+      <div id="fx-overlay"></div>
+      <div id="world-ui"></div>
+      <div id="touch-layer"></div>
+      <div id="hud"></div>
+      <!-- el fundido tapa mundo y HUD, pero no los paneles: "Continuará", menús y avisos quedan visibles -->
+      <div id="fade"></div>
+      <div id="panels"></div>
+    </div>
+    <noscript>Este juego necesita JavaScript.</noscript>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

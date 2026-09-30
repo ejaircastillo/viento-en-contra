@@ -110,6 +110,31 @@ Ejemplo de prueba completa automática: `/?debug&autoplay&nosave&chapter=ch02&ch
 Herramientas en consola con `?debug`: `__vec.keys()` (claves de sprites), `__vec.png('clave')` (exporta el
 placeholder como PNG), `__vec.autopilot(true)`, `__vec.clock('08:25')`, `__vec.speed(2)`.
 
+## Prototipo 3D: «Fantasma en trámite» (three.js)
+
+Segunda página del proyecto (`/haunted.html`): un **diorama 3D** hecho con three.js que imita el estilo de una referencia
+(cementerio de otoño y cripta, contorno naranja en lo interactuable, bloom, tilt-shift y luces cálidas sobre un vacío negro).
+Es independiente del juego 2D: no usa Phaser y se descarga aparte.
+
+- **Cuento** (≈5 min): sos un fantasma que espera su Certificado de Descanso Eterno. Don Huesos, Pelusa (perra fantasma) y Lutin
+  (escribano de la cripta) te mandan a buscar un sello oxidado. Sátira de mecanismos, sin personas reales.
+- **Controles**: WASD o flechas (en el celular, arrastrar), clic o toque para caminar, `E` / Espacio / tocar la etiqueta para
+  interactuar, `J` diario, `B` bolso, `H` ayuda, `Esc` cerrar.
+- **Herramientas** (botón arriba a la derecha): fps, calidad, resolución, efectos, exposición y sonido.
+- Todo es procedural (geometría, texturas y sonido): no hay archivos que descargar.
+
+Ejecutar: `npm run dev` y abrir `http://localhost:5178/haunted.html` (en el build queda en `dist/haunted.html`).
+
+| Parámetro | Efecto |
+|---|---|
+| `?q=low`, `?q=medium`, `?q=high` | Fuerza la calidad (por defecto se elige según el dispositivo) |
+| `?pr=1` | Fija la densidad de píxeles y apaga la resolución dinámica |
+| `?timer` | Bucle por `setTimeout` (QA con la pestaña en segundo plano) |
+| `?skipintro` | Saltea la tarjeta inicial |
+| `?nosave` | No recuerda los ajustes del panel de herramientas |
+
+Detalles técnicos en [docs/HAUNTED_THREEJS.md](docs/HAUNTED_THREEJS.md).
+
 ## Estructura
 
 ```text
@@ -130,6 +155,12 @@ src/
     ui/          HUD y paneles HTML (mobile-first)
     input/       joystick táctil, toques y teclado
     save/        guardado local
+  haunted/       prototipo 3D con three.js (página aparte: haunted.html)
+    core/        renderer, cámara de diorama, postproceso, entrada, calidad, audio procedural
+    gfx/         texturas, geometría y materiales procedurales, llamas, partículas, luces
+    world/       cementerio, cripta, personajes, colisiones, vegetación
+    game/        historia (Story), interacción, bucle del juego, textos
+    ui/          HUD, paneles con marco ornamental, panel de herramientas
   content/       contenido (capítulos, personajes, marcas, música)
     chapter01/   Capítulo 1: mapa, interiores, NPCs, diálogos, radio, estados, configuración
     chapter02/   Capítulo 2: ciudad variada, props propios, interiores, diálogos, radio, estados
@@ -145,6 +176,7 @@ tests/           tests (Vitest)
 - [docs/ARQUITECTURA.md](docs/ARQUITECTURA.md) — cómo está armado el motor y cómo se separa del contenido.
 - [docs/GUIA_NUEVO_CAPITULO.md](docs/GUIA_NUEVO_CAPITULO.md) — **cómo crear un capítulo nuevo sin modificar el motor**.
 - [docs/GUION_CAPITULO_2.md](docs/GUION_CAPITULO_2.md) — guion del Capítulo 2: beats, chistes, decisiones y consecuencias.
+- [docs/HAUNTED_THREEJS.md](docs/HAUNTED_THREEJS.md) — prototipo 3D con three.js: qué se imitó, arquitectura, calidad y límites.
 - [docs/DECISIONES.md](docs/DECISIONES.md) — decisiones tomadas, propuestas a revisar y temas sensibles.
 - [assets/ASSET_MANIFEST.md](assets/ASSET_MANIFEST.md) — inventario de assets (placeholder/final) y cómo reemplazarlos.
 

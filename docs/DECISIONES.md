@@ -81,6 +81,23 @@ sin errores, build de producción probado con `vite preview`, guardado y "Contin
 (`127.0.0.1`, para no tocar la partida del usuario), respaldo Canvas 2D probado, y revisión visual de las escenas nuevas en
 escritorio y de la pantalla de título, la selección, el manejo, el minijuego y el final en celular (375×812).
 
+## 2 ter. Prototipo 3D «Fantasma en trámite» (rama `feature/three-haunted-style`)
+
+Pedido: emular con three.js los efectos, la jugabilidad, la apariencia y el estilo de una referencia (diorama de cementerio y
+cripta con contorno naranja en lo interactuable). Detalle técnico en `docs/HAUNTED_THREEJS.md`. Decisiones:
+
+- **Página aparte, no reemplazo**: vive en `haunted.html` + `src/haunted/` y no toca el juego 2D (Phaser). Sólo reutiliza el motor
+  de diálogos de datos. Así la demo 0.2 ya desplegada queda intacta y se puede comparar ambos estilos.
+- **Sin assets externos**: geometría, texturas y sonido son procedurales; la referencia se tomó como guía de estilo, no se copió nada.
+- **Contenido propio**: un cuento corto de fantasmas burocráticos (Don Huesos, Pelusa, Lutin, el Certificado de Descanso Eterno que
+  «rige desde mañana»). La sátira apunta a mecanismos, como en el resto del juego. Nombres provisorios y ficticios: revisar que no
+  coincidan con personas locales antes de publicar.
+- **La rama no se fusionó ni se desplegó**: producción (`main`) sigue siendo la demo 0.2. Desplegar la rama (vista previa o producción)
+  queda a decisión del equipo.
+- **Sin guardado** (demo de 5 minutos); los ajustes del panel «Herramientas» se recuerdan en el navegador (salvo `?nosave`).
+- **Calidad adaptable**: tres niveles y resolución dinámica para no castigar teléfonos ni GPU integradas.
+- **Pendiente de validar**: rendimiento en teléfonos reales y GPU dedicada, y afinar el sonido escuchándolo (no se pudo en desarrollo).
+
 ## 3. Propuestas a revisar (spec §30)
 
 Están centralizadas para cambiarlas sin tocar el motor:

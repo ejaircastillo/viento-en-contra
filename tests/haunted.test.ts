@@ -6,6 +6,10 @@ import type { DialogueNode } from '../src/engine/dialogue/Dialogue';
 import { detectQuality, QUALITY } from '../src/haunted/core/quality';
 import { CameraRig, GRAVEYARD_RIG } from '../src/haunted/core/cameraRig';
 import { damp, fbm, hashStr, rng, smoothstep, valueNoise } from '../src/haunted/core/noise';
+import * as THREE from 'three';
+import { blob } from '../src/haunted/gfx/geom';
+import { windGust } from '../src/haunted/gfx/wind';
+import { MOON_DIR, moonPool, patchMoon, updateSky } from '../src/haunted/gfx/sky';
 
 describe('colisiones del fantasma', () => {
   it('saca al fantasma de un círculo y lo deja tangente', () => {
@@ -233,5 +237,67 @@ describe('guion e inscripciones', () => {
       for (const l of e.lines) expect(l.length, `${id}: ${l}`).toBeLessThanOrEqual(80);
     }
     for (let i = 1; i <= 10; i++) expect(EPITAPHS[`grave_${i}`], `grave_${i}`).toBeTruthy();
+  });
+});
+
+describe('luz de luna y viento (técnicas del desglose de la referencia)', () => {
+  it('el charco de luna se inyecta en el bucle de luces direccionales de three.js', () => {
+    const glsl = ['#include <common>', 'void main() {', '#include <lights_fragment_begin>', '}'].join(String.fromCharCode(10));
+    const sh = { uniforms: {} as Record<string, { value: unknown }>, fragmentShader: glsl };
+    patchMoon(sh);
+    // si una versión nueva de three cambia ese chunk, esta prueba avisa antes de que la luna deje de caer
+    expect(sh.fragmentShader).toContain('directLight.color *= moonPool( geometryPosition );');
+    expect(sh.fragmentShader).toContain('float moonPool( vec3 viewPos )');
+    for (const k of ['uGhostView', 'uCamWorld', 'uPool', 'uCloud', 'uSkyTime']) expect(sh.uniforms[k]).toBe(moonPool[k as keyof typeof moonPool]);
+  });
+
+  it('la distancia al fantasma se mide bien en espacio de vista y la luna apunta hacia arriba', () => {
+    const cam = new THREE.PerspectiveCamera(27, 1.6, 0.5, 140);
+    cam.position.set(12, 14, 12);
+    cam.lookAt(0, 0, 0);
+    cam.updateMatrixWorld(true);
+    updateSky(cam, 2, -3, 5);
+    expect(moonPool.uGhostView.value.length()).toBeCloseTo(cam.position.distanceTo(new THREE.Vector3(2, 0.6, -3)), 4);
+    expect(moonPool.uSkyTime.value).toBe(5);
+    expect(MOON_DIR.length()).toBeCloseTo(1);
+    expect(MOON_DIR.y).toBeGreaterThan(0.5);
+  });
+
+  it('el viento de la CPU (hojas y humo) queda acotado y cambia con el tiempo y el lugar', () => {
+    let min = 9;
+    let max = -9;
+    for (let i = 0; i < 400; i++) {
+      const v = windGust(i * 0.7, i * 0.3, i * 0.05);
+      min = Math.min(min, v);
+      max = Math.max(max, v);
+    }
+    expect(min).toBeGreaterThanOrEqual(-1.4);
+    expect(max).toBeLessThanOrEqual(1.4);
+    expect(max - min).toBeGreaterThan(1);
+    expect(windGust(1, 2, 3)).not.toBe(windGust(1, 2, 3.5));
+    expect(windGust(1, 2, 3)).toBe(windGust(1, 2, 3));
+  });
+
+  it('las copas con normales suaves apuntan hacia afuera (luz que resbala, como en los árboles de la referencia)', () => {
+    const soft = blob(1, 1, 0.3, 4, [1, 1, 1], undefined, 1);
+    const pos = soft.getAttribute('position');
+    const nor = soft.getAttribute('normal');
+    const p = new THREE.Vector3();
+    const n = new THREE.Vector3();
+    for (let i = 0; i < pos.count; i++) {
+      p.fromBufferAttribute(pos, i).normalize();
+      n.fromBufferAttribute(nor, i);
+      expect(p.dot(n)).toBeGreaterThan(0.999);
+    }
+    const flat = blob(1, 1, 0.3, 4);
+    const fn = flat.getAttribute('normal');
+    const fp = flat.getAttribute('position');
+    let differs = 0;
+    for (let i = 0; i < fp.count; i++) {
+      p.fromBufferAttribute(fp, i).normalize();
+      n.fromBufferAttribute(fn, i);
+      if (p.dot(n) < 0.99) differs++;
+    }
+    expect(differs).toBeGreaterThan(0);
   });
 });

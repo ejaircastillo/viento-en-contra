@@ -30,6 +30,8 @@ export interface Area {
   spawns: Record<string, Spawn>;
   /** Niebla y color de fondo de esta área. */
   fog: { color: number; density: number };
+  /** Intensidad del entorno (luz ambiente del cielo): alta afuera, casi nula bajo techo. */
+  env: number;
   cols: Colliders;
   update: (dt: number, t: number, env: AreaEnv) => void;
 }

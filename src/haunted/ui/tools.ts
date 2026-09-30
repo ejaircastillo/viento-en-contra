@@ -1,6 +1,7 @@
 import type { App } from '../core/app';
 import type { Sound } from '../core/audio';
 import type { Effect } from '../core/post';
+import { moonPool } from '../gfx/sky';
 import { el } from './hud';
 
 /**
@@ -14,6 +15,7 @@ interface Saved {
   bloom: number;
   res: string;
   sound: boolean;
+  moon?: boolean;
 }
 
 const KEY = 'haunted.tools.v1';
@@ -82,6 +84,7 @@ export class Tools {
     app.renderer.toneMappingExposure = saved.exposure;
     app.post.setBloomStrength(saved.bloom);
     app.setResolution(saved.res === 'auto' ? null : Number(saved.res));
+    if (saved.moon !== undefined) moonPool.uPool.value.w = saved.moon ? 1 : 0;
     this.sound.setMuted(!saved.sound);
   }
 
@@ -129,6 +132,17 @@ export class Tools {
       });
       panel.appendChild(this.row(label, c));
     }
+
+    const moon = el('input');
+    moon.type = 'checkbox';
+    moon.checked = moonPool.uPool.value.w > 0;
+    moon.addEventListener('change', () => {
+      saved.moon = moon.checked;
+      moonPool.uPool.value.w = moon.checked ? 1 : 0;
+      this.save();
+      moon.blur();
+    });
+    panel.appendChild(this.row('Luna con halo y nubes', moon));
 
     const exp = el('input');
     exp.type = 'range';

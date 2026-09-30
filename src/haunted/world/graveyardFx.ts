@@ -3,6 +3,7 @@ import type { Quality } from '../core/quality';
 import { Particles } from '../gfx/particles';
 import { glowTexture, leafSpriteTexture, smokeTexture } from '../gfx/textures';
 import { noise1 } from '../core/noise';
+import { windGust } from '../gfx/wind';
 
 /**
  * Efectos de partículas del cementerio: el humo oscuro de la fogata (con brillo anaranjado abajo), las
@@ -24,9 +25,11 @@ export function makeGraveyardFx(camp: THREE.Vector3, quality: Quality): Graveyar
     max: Math.round(70 * q),
     map: smokeTexture(128),
     sort: true,
+    lit: true,
     step: (p, dt, t) => {
-      p.vx += ((noise1(t * 0.5 + p.a, p.b) - 0.45) * 1.1 + 0.2) * dt;
-      p.vz += (noise1(t * 0.5 + p.b, p.a + 3) - 0.5) * 0.9 * dt;
+      const w = windGust(p.x, p.z, t);
+      p.vx += ((noise1(t * 0.5 + p.a, p.b) - 0.45) * 0.7 + 0.25 + w * 0.45) * dt;
+      p.vz += ((noise1(t * 0.5 + p.b, p.a + 3) - 0.5) * 0.6 + w * 0.2) * dt;
       p.vy *= 1 - 0.05 * dt;
     },
   });
@@ -43,8 +46,9 @@ export function makeGraveyardFx(camp: THREE.Vector3, quality: Quality): Graveyar
     max: Math.round(46 * q),
     map: leafSpriteTexture(64),
     step: (p, dt, t) => {
-      p.vx = 0.55 + Math.sin(t * 1.3 + p.a) * 0.45;
-      p.vz = 0.3 + Math.cos(t * 1.1 + p.b) * 0.4;
+      const w = windGust(p.x, p.z, t);
+      p.vx = 0.5 + w * 0.6 + Math.sin(t * 1.3 + p.a) * 0.2;
+      p.vz = 0.25 + w * 0.3 + Math.cos(t * 1.1 + p.b) * 0.2;
       if (p.y < 0.05) p.age = p.life;
     },
   });
@@ -73,9 +77,10 @@ export function makeGraveyardFx(camp: THREE.Vector3, quality: Quality): Graveyar
           p.size1 = 2.6 + Math.random() * 1.1;
           p.rot = Math.random() * 6.28;
           p.spin = (Math.random() - 0.5) * 0.5;
-          p.c0.setRGB(0.5, 0.27, 0.12);
-          p.c1.setRGB(0.17, 0.19, 0.25);
-          p.peak = 0.8;
+          p.c0.setRGB(0.55, 0.38, 0.27);
+          p.c1.setRGB(0.3, 0.36, 0.5);
+          p.peak = 0.85;
+          p.glow = 0.9;
           p.a = Math.random() * 50;
           p.b = Math.random() * 50;
         });

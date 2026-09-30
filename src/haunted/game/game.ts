@@ -9,6 +9,7 @@ import { Ghost } from '../world/ghost';
 import type { Area } from '../world/area';
 import { buildGraveyard, type GraveyardArea } from '../world/graveyardArea';
 import { CAMP } from '../world/graveyard';
+import { applyMoon, cloudTexture, makeSkyEnvironment, moonPool, updateSky } from '../gfx/sky';
 import { buildCrypt, type CryptArea } from '../world/crypt';
 import type { Interactable } from '../world/ctx';
 import { Hud } from '../ui/hud';
@@ -55,6 +56,12 @@ export class Game {
     this.pool = new LightPool(app.scene, app.quality.lightPool);
     this.graveyard = buildGraveyard(this.mats, this.pool, app.quality);
     this.crypt = buildCrypt(this.mats, this.pool, app.quality);
+    moonPool.uCloud.value = cloudTexture();
+    app.scene.environment = makeSkyEnvironment(app.renderer);
+    applyMoon(this.graveyard.group);
+    this.graveyard.group.traverse((o) => {
+      if (o.userData.noOutline) app.post.noOutline.add(o);
+    });
     this.sparks = new Particles({ max: 60, map: glowTexture(64, 2), additive: true });
     app.scene.add(this.sparks.mesh);
     this.ghost = new Ghost(this.mats, this.sparks);
@@ -101,6 +108,7 @@ export class Game {
     this.sound.setArea(area === this.crypt ? 'crypt' : 'graveyard');
     const sp = area.spawns[spawn] ?? Object.values(area.spawns)[0];
     this.ghost.place(sp.x, sp.z, sp.yaw);
+    this.app.scene.environmentIntensity = area.env;
     this.app.scene.fog = area.fog.density > 0 ? new THREE.FogExp2(area.fog.color, area.fog.density) : null;
     this.app.rig.configure(area.rig, true);
     this.app.rig.setAspect(innerWidth / innerHeight);
@@ -264,6 +272,7 @@ export class Game {
   // ------------------------------------------------------------------ cuadro a cuadro
   private update(dt: number, t: number): void {
     windUniforms.uTime.value = t;
+    updateSky(this.app.rig.camera, this.ghost.x, this.ghost.z, t);
     windUniforms.uPush.value.set(this.ghost.x, this.ghost.z, 1.35, 1);
     this.digSfxT = Math.max(0, this.digSfxT - dt);
     const g = this.ghost;

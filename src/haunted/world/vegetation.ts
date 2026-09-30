@@ -101,7 +101,7 @@ export function makeBush(ctx: BuildCtx, x: number, z: number, s = 1): THREE.Mesh
   for (let i = 0; i < 4; i++) {
     const a = ctx.rnd() * Math.PI * 2;
     const c = new THREE.Color(GREEN[Math.floor(ctx.rnd() * GREEN.length)]);
-    const b = blob(0.34 + ctx.rnd() * 0.16, 1, 0.3, i + 2, [1, 0.8, 1], (_px, py) => c.clone().multiplyScalar(0.55 + 0.7 * THREE.MathUtils.clamp(py + 0.3, 0, 1)));
+    const b = blob(0.34 + ctx.rnd() * 0.16, 1, 0.3, i + 2, [1, 0.8, 1], (_px, py) => c.clone().multiplyScalar(0.55 + 0.7 * THREE.MathUtils.clamp(py + 0.3, 0, 1)), 0.6);
     parts.push(xf(b, [Math.cos(a) * 0.32 * s, 0.22 * s, Math.sin(a) * 0.32 * s], [0, ctx.rnd() * 6, 0], s));
   }
   const m = new THREE.Mesh(merge(parts), ctx.mats.leaf);

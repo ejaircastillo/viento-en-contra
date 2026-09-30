@@ -3,6 +3,7 @@ import type { BuildCtx } from './ctx';
 import { shadows } from './ctx';
 import { V3, blob, jitterColor, merge, prep, tube, xf } from '../gfx/geom';
 import { damp, noise1 } from '../core/noise';
+import { makeCloudDog } from '../gfx/cloudDog';
 
 /**
  * Personajes del mundo, armados con blobs y tubos (sin rig): el esqueleto sentado junto al fuego, la perrita
@@ -98,6 +99,11 @@ const fur = () =>
  * mueve la cola y las orejas, y de vez en cuando suelta una ventosidad (un chiste de la casa: "hija del viento").
  */
 export function makeDogSpirit(ctx: BuildCtx): Actor & { facing: number; puff: (() => void) | null } {
+  // con calidad media/alta la perrita es un volumen de nube (raymarching); las mallas de abajo quedan invisibles y
+  // sólo dan la silueta del contorno naranja y la sombra. En calidad baja se ve la malla facetada.
+  const cloud = ctx.quality.id === 'low' ? null : makeCloudDog();
+  const proxy = cloud ? new THREE.MeshBasicMaterial({ colorWrite: false, depthWrite: false }) : null;
+  const coat = () => proxy ?? fur();
   const c = '#ffffff';
   const parts: THREE.BufferGeometry[] = [];
   parts.push(xf(blob(0.3, 1, 0.14, 1, [1.5, 0.95, 1.0], c), [0, 0.38, 0]));
@@ -111,11 +117,11 @@ export function makeDogSpirit(ctx: BuildCtx): Actor & { facing: number; puff: ((
   const earR = xf(blob(0.085, 1, 0.08, 7, [0.6, 1.4, 0.9], c), [-0.02, 0.17, -0.16], [-0.4, 0, -0.2]);
   headParts.push(earL, earR);
   const g = new THREE.Group();
-  const bodyMesh = new THREE.Mesh(body, fur());
+  const bodyMesh = new THREE.Mesh(body, coat());
   g.add(bodyMesh);
   const head = new THREE.Group();
   head.position.set(0.44, 0.6, 0);
-  head.add(new THREE.Mesh(merge(headParts), fur()));
+  head.add(new THREE.Mesh(merge(headParts), coat()));
   const black = new THREE.MeshBasicMaterial({ color: 0x08090d, toneMapped: false });
   const nose = new THREE.Mesh(new THREE.SphereGeometry(0.032, 8, 6), black);
   nose.position.set(0.285, -0.03, 0);
@@ -128,7 +134,7 @@ export function makeDogSpirit(ctx: BuildCtx): Actor & { facing: number; puff: ((
   g.add(head);
   const tail = new THREE.Group();
   tail.position.set(-0.4, 0.5, 0);
-  tail.add(new THREE.Mesh(merge([xf(blob(0.09, 1, 0.1, 8, [1.6, 0.8, 0.8], c), [-0.08, 0.04, 0]), xf(blob(0.07, 1, 0.1, 9, [1.3, 0.8, 0.8], c), [-0.2, 0.12, 0])]), fur()));
+  tail.add(new THREE.Mesh(merge([xf(blob(0.09, 1, 0.1, 8, [1.6, 0.8, 0.8], c), [-0.08, 0.04, 0]), xf(blob(0.07, 1, 0.1, 9, [1.3, 0.8, 0.8], c), [-0.2, 0.12, 0])]), coat()));
   g.add(tail);
   const a: Actor & { facing: number; puff: (() => void) | null } = {
     group: g,
@@ -140,9 +146,11 @@ export function makeDogSpirit(ctx: BuildCtx): Actor & { facing: number; puff: ((
       tail.rotation.y = Math.sin(t * (talking ? 14 : 7)) * 0.55;
       head.rotation.z = Math.sin(t * 1.7) * 0.06 + (talking ? Math.sin(t * 9) * 0.05 : 0);
       bodyMesh.scale.y = 1 + Math.sin(t * 2.1 + 1) * 0.02;
+      cloud?.update(t, tail.rotation.y, head.rotation.z, Math.sin(t * 2.1 + 1) * 0.012, g.rotation.y);
     },
   };
   shadows(g, true, false);
+  if (cloud) g.add(cloud.mesh);
   return a;
 }
 

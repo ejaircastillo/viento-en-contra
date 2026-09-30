@@ -107,6 +107,8 @@ export class Post {
   readonly grade: ShaderPass;
   private fxaa: FXAAPass | null;
   private size = new THREE.Vector2(1, 1);
+  /** Objetos que no deben entrar al pase del contorno (volúmenes: el contorno usa una silueta aparte). */
+  readonly noOutline = new Set<THREE.Object3D>();
 
   constructor(
     readonly renderer: THREE.WebGLRenderer,
@@ -125,7 +127,18 @@ export class Post {
       this.outline.edgeThickness = 2.2;
       this.outline.pulsePeriod = 0;
       this.outline.visibleEdgeColor.set('#ff9a2e');
-      this.outline.hiddenEdgeColor.set('#ff9a2e');
+      this.outline.hiddenEdgeColor.set('#000000'); // el brillo no se cuela a través de lo que está delante (usa la profundidad)
+      const base = this.outline.render.bind(this.outline);
+      this.outline.render = (...args: Parameters<OutlinePass['render']>) => {
+        const hidden: THREE.Object3D[] = [];
+        for (const o of this.noOutline) {
+          if (!o.visible) continue;
+          o.visible = false;
+          hidden.push(o);
+        }
+        base(...args);
+        for (const o of hidden) o.visible = true;
+      };
       this.composer.addPass(this.outline);
     }
 

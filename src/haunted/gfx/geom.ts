@@ -74,8 +74,11 @@ export function jitterColor(geo: THREE.BufferGeometry, amount = 0.12, seed = 1):
   return geo;
 }
 
-/** Esfera facetada con la superficie ondulada por ruido: arbustos, copas, pelaje, cabezas. */
-export function blob(radius: number, detail = 1, amp = 0.25, seed = 1, squash: [number, number, number] = [1, 1, 1], color?: THREE.ColorRepresentation | ColorFn): THREE.BufferGeometry {
+/**
+ * Esfera facetada con la superficie ondulada por ruido: arbustos, copas, pelaje, cabezas. Con `soft` > 0 las normales
+ * se acercan a las radiales: la silueta sigue facetada pero la luz resbala suave (como los árboles de la referencia).
+ */
+export function blob(radius: number, detail = 1, amp = 0.25, seed = 1, squash: [number, number, number] = [1, 1, 1], color?: THREE.ColorRepresentation | ColorFn, soft = 0): THREE.BufferGeometry {
   const g = new THREE.IcosahedronGeometry(radius, detail);
   const p = g.getAttribute('position');
   const v = new THREE.Vector3();
@@ -86,6 +89,17 @@ export function blob(radius: number, detail = 1, amp = 0.25, seed = 1, squash: [
     p.setXYZ(i, v.x * k * squash[0], v.y * k * squash[1], v.z * k * squash[2]);
   }
   g.computeVertexNormals();
+  if (soft > 0) {
+    const nor = g.getAttribute('normal');
+    const n = new THREE.Vector3();
+    const r = new THREE.Vector3();
+    for (let i = 0; i < p.count; i++) {
+      n.fromBufferAttribute(nor, i);
+      r.fromBufferAttribute(p, i).normalize();
+      n.lerp(r, soft).normalize();
+      nor.setXYZ(i, n.x, n.y, n.z);
+    }
+  }
   return prep(g, color);
 }
 

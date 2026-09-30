@@ -1,8 +1,9 @@
 # Prototipo 3D «Fantasma en trámite» (three.js)
 
 Página aparte del proyecto (`haunted.html`, código en `src/haunted/`) que prueba otro lenguaje visual: un **diorama 3D**
-hecho con three.js, inspirado en una referencia de @iced_coffee_dev (cementerio de otoño + cripta, personajes
-low-poly con contorno naranja cuando se pueden tocar, luces cálidas, bloom y un vacío negro alrededor del terreno).
+hecho con three.js, inspirado en la escena de Halloween de @iced_coffee_dev (cementerio de otoño + cripta, personajes
+low-poly con contorno naranja cuando se pueden tocar, luces cálidas, bloom y un vacío negro alrededor del terreno). Se
+siguió el desglose técnico que el propio autor publicó en un hilo (ver «Desglose de la referencia»).
 No se copió ningún asset: geometría, texturas y sonido se generan por código. Es independiente del juego 2D (no
 usa Phaser); sólo reaprovecha el motor de diálogos de datos (`src/engine/dialogue/Dialogue.ts`).
 
@@ -52,7 +53,25 @@ Los efectos se pueden apagar en caliente desde «Herramientas».
 Un `PointLight` por farol sería carísimo y recompilaría shaders al cambiar su número. Se usa un **pool de tamaño fijo**
 (`LightPool`: 6 / 8 / 10 según calidad) que cada cuadro se reparte entre los emisores más cercanos al fantasma; el resto de
 los emisores conserva una mancha de luz horneada (decal aditivo) y un halo. La luna es una `DirectionalLight` con sombras que
-sigue al jugador con el mapa de sombras alineado al píxel (sin temblor). La cripta usa un `SpotLight` con sombras y antorchas.
+sigue al jugador con el mapa de sombras alineado al píxel (sin temblor) y se atenúa con la distancia al fantasma (`moonPool`, con nubes
+que pasan); el ambiente sale de un entorno nocturno procedural (PMREM), más bajo en la cripta. La cripta usa un `SpotLight` con sombras y antorchas.
+
+## Desglose de la referencia (hilo del autor) y qué se hizo con cada punto
+
+El autor publicó un hilo con el desglose de su escena. Esto dice y así se resolvió acá (✔ igual o parecido, ≈ aproximado, ✘ no hecho):
+
+| Técnica del autor | En este prototipo |
+|---|---|
+| Luz: una direccional fuerte (la luna) + un HDRI; la luna cae de forma exponencial suave desde el 100 % sobre el fantasma hasta ~20 % a unos 6 m, con modulación de «mapa de nubes» (Perlin-Worley) | ✔ `gfx/sky.ts`: `moonPool` (caída exponencial alrededor del fantasma, piso del 28 %) y mapa de nubes que se desplaza. ≈ El HDRI es un entorno nocturno procedural filtrado con PMREM |
+| Árboles con normales redondeadas para que la luz se vea más suave | ✔ `blob(…, soft)`: normales mezcladas con las radiales en copas y arbustos |
+| Partículas propias; humo iluminado con normales derivadas de una esfera; llama y humo en un solo estado de mezcla aditivo/alfa | ✔ `gfx/particles.ts` (`lit`): normales de esfera + luna y alfa premultiplicado (parte aditiva al nacer, alfa al envejecer) |
+| Suelo: un plano con splats de texturas, máscara RGBA y POM | ≈ un solo plano pintado por código (`GroundPainter`: caminos, adoquines, pasto) con bump; sin POM |
+| Pasto estilo Ghost of Tsushima; viento = ruido muestreado con la misma implementación en CPU para mover partículas | ≈ hojas instanciadas con viento en el vertex shader; la **misma fórmula en CPU** (`gfx/wind.ts`) mueve hojas y humo; el pasto se aparta del fantasma; los vértices no se generan desde índices |
+| Fantasma: una bola con una tela simulada encima | ≈ sábana con el dobladillo deformado en CPU (`world/ghost.ts`), sin simulación de tela |
+| Perro: volumen tipo SDF con raymarching de nubes (Horizon: Forbidden West) y sombra compuesta | ✔ `gfx/cloudDog.ts`: SDF con ruido recorrido dentro de una caja, autosombra hacia la luna y alfa premultiplicado (calidad media y alta; en baja queda la malla); la sombra y el contorno salen de una silueta invisible |
+| PostFX de three.js + SSAO + sombras de contacto propias + bloom propio | ≈ bloom de three.js, tilt-shift, viñeta, grano y ACES. ✘ Sin SSAO ni sombras de contacto: oclusión pintada en los vértices, manchas de luz horneadas y sombra blanda bajo los personajes |
+| Resaltado: contorno desenfocado que usa la profundidad para que el brillo no se cuele por delante de otros objetos, compuesto con el bloom | ✔ `OutlinePass` antes del bloom con el color de aristas ocultas en negro (el brillo no atraviesa lo que está delante) |
+| Árboles y modelos de Quaternius | ✘ Todo procedural (sin modelos externos) |
 
 ## Calidad y rendimiento
 
@@ -102,4 +121,5 @@ salvedades de abajo.
 - No hay guardado de la partida (es una demo de 5 minutos); los ajustes de «Herramientas» sí se recuerdan.
 - Los personajes y la perra son geometría procedural: para arte final conviene reemplazarlos por modelos glTF (la interfaz
   `Actor` de `world/chars.ts` ya separa «grupo + update»).
+- La perrita volumétrica (raymarching) sólo se usa en calidad media y alta; su costo depende del tamaño en pantalla y no se midió en GPU reales.
 - Falta un segundo nivel de detalle para la hierba lejana y un culling por áreas si el cementerio crece.

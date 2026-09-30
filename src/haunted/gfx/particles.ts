@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { skyUniforms } from './sky';
 
 /**
  * Partículas como quads instanciados que miran a la cámara (sin el tope de tamaño de los Points): humo,
@@ -22,6 +23,8 @@ export interface Particle {
   c0: THREE.Color;
   c1: THREE.Color;
   peak: number;
+  /** Parte aditiva (resplandor) al nacer, de 0 a 1; se apaga con la edad. Sólo con `lit`. */
+  glow: number;
   /** Datos propios del emisor (fase del vaivén, etc.). */
   a: number;
   b: number;
@@ -31,6 +34,11 @@ export interface ParticleOpts {
   max: number;
   map: THREE.Texture;
   additive?: boolean;
+  /**
+   * Humo iluminado: normales de esfera derivadas del quad + la luna, y mezcla "aditivo/alfa" en un solo estado
+   * (alfa premultiplicado: con alfa 0 y color > 0 la partícula suma luz, con alfa 1 tapa). Como en la referencia.
+   */
+  lit?: boolean;
   sort?: boolean;
   /** Se ejecuta por partícula y cuadro (gravedad, turbulencia). */
   step?: (p: Particle, dt: number, time: number) => void;
@@ -42,8 +50,10 @@ const VERT = /* glsl */ `
   attribute vec3 aColor;
   varying vec2 vUv;
   varying vec4 vCol;
+  varying float vGlow;
   void main() {
     vUv = uv;
+    vGlow = aData.w;
     vCol = vec4(aColor, aData.z);
     vec4 mv = viewMatrix * modelMatrix * vec4(aPos, 1.0);
     float c = cos(aData.y);
@@ -56,13 +66,24 @@ const VERT = /* glsl */ `
 
 const FRAG = /* glsl */ `
   uniform sampler2D uMap;
+  uniform vec3 uMoonDirView;
   varying vec2 vUv;
   varying vec4 vCol;
+  varying float vGlow;
   void main() {
     vec4 t = texture2D(uMap, vUv);
     float a = t.a * vCol.a;
     if (a < 0.003) discard;
-    gl_FragColor = vec4(vCol.rgb * t.rgb, a);
+    vec3 col = vCol.rgb * t.rgb;
+    #ifdef LIT
+      vec2 q = vUv * 2.0 - 1.0;
+      vec3 n = normalize(vec3(q, sqrt(max(0.0, 1.0 - dot(q, q)))));
+      float l = dot(n, normalize(uMoonDirView)) * 0.5 + 0.5;
+      col *= 0.28 + 0.78 * l * l;
+      gl_FragColor = vec4((col + vCol.rgb * vGlow * 1.4) * a, a);
+    #else
+      gl_FragColor = vec4(col, a);
+    #endif
   }
 `;
 
@@ -92,12 +113,20 @@ export class Particles {
     const mat = new THREE.ShaderMaterial({
       vertexShader: VERT,
       fragmentShader: FRAG,
-      uniforms: { uMap: { value: opts.map } },
+      uniforms: { uMap: { value: opts.map }, uMoonDirView: skyUniforms.uMoonDirView },
+      defines: opts.lit ? { LIT: '' } : {},
       transparent: true,
       depthWrite: false,
-      blending: opts.additive ? THREE.AdditiveBlending : THREE.NormalBlending,
+      blending: opts.lit ? THREE.CustomBlending : opts.additive ? THREE.AdditiveBlending : THREE.NormalBlending,
       toneMapped: false,
     });
+    if (opts.lit) {
+      mat.blendEquation = THREE.AddEquation;
+      mat.blendSrc = THREE.OneFactor;
+      mat.blendDst = THREE.OneMinusSrcAlphaFactor;
+      mat.blendSrcAlpha = THREE.OneFactor;
+      mat.blendDstAlpha = THREE.OneMinusSrcAlphaFactor;
+    }
     this.mesh = new THREE.Mesh(this.geo, mat);
     this.mesh.frustumCulled = false;
     this.mesh.renderOrder = opts.additive ? 5 : 3;
@@ -116,7 +145,7 @@ export class Particles {
     if (this.full) return null;
     const p: Particle = {
       x: 0, y: 0, z: 0, vx: 0, vy: 0, vz: 0, age: 0, life: 2, size0: 0.2, size1: 0.4, rot: 0, spin: 0,
-      c0: new THREE.Color(1, 1, 1), c1: new THREE.Color(1, 1, 1), peak: 1, a: 0, b: 0,
+      c0: new THREE.Color(1, 1, 1), c1: new THREE.Color(1, 1, 1), peak: 1, glow: 0, a: 0, b: 0,
     };
     init(p);
     this.list.push(p);
@@ -158,7 +187,7 @@ export class Particles {
       const fade = Math.min(1, t / 0.15) * (1 - Math.max(0, (t - 0.4) / 0.6) ** 1.3);
       this.tmp.copy(p.c0).lerp(p.c1, Math.min(1, t * 1.4));
       this.aPos.setXYZ(k, p.x, p.y, p.z);
-      this.aData.setXYZW(k, p.size0 + (p.size1 - p.size0) * Math.sqrt(t), p.rot, p.peak * Math.max(0, fade), 0);
+      this.aData.setXYZW(k, p.size0 + (p.size1 - p.size0) * Math.sqrt(t), p.rot, p.peak * Math.max(0, fade), p.glow * (1 - t) ** 2);
       this.aColor.setXYZ(k, this.tmp.r, this.tmp.g, this.tmp.b);
     }
     this.geo.instanceCount = n;

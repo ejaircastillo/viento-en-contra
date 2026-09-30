@@ -211,6 +211,7 @@ function buildContents(ctx: BuildCtx, group: THREE.Group, door: THREE.Group, col
     rig: CRYPT_RIG,
     spawns: { entry: { x: doorX, z: -hd + 1.6, yaw: 0 } },
     fog: { color: 0x03040a, density: 0 },
+    env: 0.12,
     lutinSeatX: -hw + 1.9,
     setExitOpen: (v) => {
       door.rotation.y = -v * 1.6;

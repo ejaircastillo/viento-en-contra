@@ -88,7 +88,7 @@ export function makeAutumnTree(ctx: BuildCtx, x: number, z: number, scale = 1, s
     const base = new THREE.Color(REDS[Math.floor(r() * REDS.length)]);
     const rad = 0.4 + r() * 0.36;
     const inner = 1 - Math.min(1, Math.hypot(px, pz, (cy - 2.75) * 0.9) / 1.6);
-    const b = blob(rad, 1, 0.3, seed * 10 + i, [1, 0.8, 1], (vx, vy) => base.clone().multiplyScalar(0.75 + 0.85 * THREE.MathUtils.clamp(0.4 + vy * 0.9 + (1 - inner) * 0.5, 0, 1)));
+    const b = blob(rad, 1, 0.3, seed * 10 + i, [1, 0.8, 1], (vx, vy) => base.clone().multiplyScalar(0.75 + 0.85 * THREE.MathUtils.clamp(0.4 + vy * 0.9 + (1 - inner) * 0.5, 0, 1)), 0.7);
     blobs.push(xf(b, [px, cy, pz], [0, r() * 6, 0]));
   }
   const g = new THREE.Group();

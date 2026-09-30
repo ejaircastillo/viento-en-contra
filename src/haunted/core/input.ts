@@ -3,7 +3,7 @@
  * arrastrar = joystick flotante) y acciones (interactuar, cerrar, diario, bolso, ayuda).
  * El vector de movimiento está en ejes de PANTALLA: x → derecha, y → hacia el fondo (arriba).
  */
-export type Action = 'interact' | 'close' | 'journal' | 'bag' | 'help';
+export type Action = 'interact' | 'close' | 'journal' | 'bag' | 'help' | 'voice';
 
 const KEYS: Record<string, Action> = {
   e: 'interact',
@@ -14,6 +14,7 @@ const KEYS: Record<string, Action> = {
   i: 'bag',
   b: 'bag',
   h: 'help',
+  v: 'voice',
   '?': 'help',
 };
 

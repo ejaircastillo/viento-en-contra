@@ -15,6 +15,7 @@ import type { Interactable } from '../world/ctx';
 import { Hud } from '../ui/hud';
 import { Tools } from '../ui/tools';
 import { Sound, type Voice } from '../core/audio';
+import { Speech } from '../core/speech';
 import { Interaction } from './interaction';
 import { Story, type StoryHost } from './story';
 import type { Epitaph } from './content';
@@ -32,6 +33,8 @@ export class Game {
   readonly ghost: Ghost;
   readonly hud: Hud;
   readonly sound = new Sound();
+  /** Lectura en voz alta de los diálogos (voz del navegador). */
+  readonly speech = new Speech();
   readonly story: Story;
   readonly graveyard: GraveyardArea;
   readonly crypt: CryptArea;
@@ -70,13 +73,16 @@ export class Game {
     const roots = { hud: document.getElementById('hud')!, panels: document.getElementById('panels')!, tags: document.getElementById('tags')! };
     this.hud = new Hud(
       roots,
-      { onButton: (b) => void this.button(b), onTag: () => this.useCurrent(), onModal: (o) => this.setModal(o), onPanel: () => this.sound.sfx('open'), onVoice: (n) => this.sound.blip(voiceOf(n)) },
+      { onButton: (b) => void this.button(b), onTag: () => this.useCurrent(), onModal: (o) => this.setModal(o), onPanel: () => this.sound.sfx('open'), onVoice: (n) => !this.speech.active && this.sound.blip(voiceOf(n)), speak: (who, text, ev) => this.speech.speak(voiceOf(who), text, ev), onVoiceToggle: () => this.toggleVoice() },
       app.touch,
     );
-    this.tools = new Tools(roots.hud, app, this.sound);
+    this.tools = new Tools(roots.hud, app, this.sound, this.speech);
+    this.hud.setVoice(this.speech.supported, this.speech.enabled);
+    this.speech.onChange(() => this.hud.setVoice(this.speech.supported, this.speech.enabled));
     // el audio sólo puede arrancar con un gesto del usuario
     const unlock = () => {
       this.sound.unlock();
+      this.speech.unlock();
       if (this.sound.ready) for (const e of ['pointerdown', 'keydown', 'touchend']) window.removeEventListener(e, unlock);
     };
     for (const e of ['pointerdown', 'keydown', 'touchend']) window.addEventListener(e, unlock, { passive: true });
@@ -156,7 +162,20 @@ export class Game {
     }
   }
 
+  private toggleVoice(): void {
+    if (!this.speech.supported) {
+      this.hud.toast('Este navegador no sabe leer en voz alta');
+      return;
+    }
+    this.speech.set({ enabled: !this.speech.enabled });
+    this.hud.toast(this.speech.enabled ? 'Voz activada: se leen los diálogos' : 'Voz desactivada');
+  }
+
   private action(a: Action): void {
+    if (a === 'voice') {
+      this.toggleVoice();
+      return;
+    }
     if (this.hud.handleAction(a)) return;
     if (this.transition) return;
     if (a === 'interact') this.useCurrent();
@@ -176,7 +195,8 @@ export class Game {
       await this.hud.page(
         'Ayuda',
         'Cómo se juega',
-        '<p><kbd>W A S D</kbd> o flechas: flotar. En el celular, arrastrá el dedo.</p><p>Tocá un lugar del piso para ir hasta ahí. <kbd>E</kbd>, <kbd>Espacio</kbd> o tocar la etiqueta: interactuar.</p><p><kbd>J</kbd> diario · <kbd>B</kbd> bolso · <kbd>H</kbd> ayuda · <kbd>Esc</kbd> cerrar.</p>',
+        '<p><kbd>W A S D</kbd> o flechas: flotar. En el celular, arrastrá el dedo.</p><p>Tocá un lugar del piso para ir hasta ahí. <kbd>E</kbd>, <kbd>Espacio</kbd> o tocar la etiqueta: interactuar.</p><p><kbd>J</kbd> diario · <kbd>B</kbd> bolso · <kbd>H</kbd> ayuda · <kbd>V</kbd> voz (lee los diálogos en voz alta) · <kbd>Esc</kbd> cerrar.</p>',
+        false,
       );
     }
   }

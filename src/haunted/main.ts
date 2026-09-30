@@ -32,11 +32,28 @@ async function boot(): Promise<void> {
   app.scene.remove(game.crypt.group);
   await step(96, 'Casi listo…');
   app.start();
-  loading.classList.add('done');
-  if (!new URLSearchParams(location.search).has('skipintro')) game.begin();
-  else game.story.start();
   (window as unknown as { __game: Game; __app: App }).__game = game;
   (window as unknown as { __app: App }).__app = app;
+  if (new URLSearchParams(location.search).has('skipintro')) {
+    loading.classList.add('done');
+    game.story.start();
+    return;
+  }
+  // pantalla de inicio: espera un toque o una tecla (eso desbloquea el sonido y la voz, así la tarjeta inicial ya se lee)
+  loading.classList.add('ready');
+  await new Promise<void>((resolve) => {
+    const go = () => {
+      window.removeEventListener('pointerdown', go);
+      window.removeEventListener('keydown', go);
+      game.sound.unlock();
+      game.speech.unlock();
+      resolve();
+    };
+    window.addEventListener('pointerdown', go);
+    window.addEventListener('keydown', go);
+  });
+  loading.classList.add('done');
+  setTimeout(() => game.begin(), 400);
 }
 
 boot().catch((e) => {

@@ -1,4 +1,5 @@
 import type { Action } from '../core/input';
+import type { SpeakEvents, Utterance } from '../core/speech';
 
 /**
  * HUD y paneles HTML: barra inferior (diario, bolso, ayuda) con el objetivo, etiqueta flotante de lo
@@ -8,6 +9,7 @@ import type { Action } from '../core/input';
 const ICON_BOOK = '<svg viewBox="0 0 32 32"><path d="M7 4h16a2 2 0 0 1 2 2v20a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/><path d="M5 9H3m2 6H3m2 6H3M11 10h9m-9 5h9m-9 5h6"/></svg>';
 const ICON_BAG = '<svg viewBox="0 0 32 32"><path d="M8 13h16l2.4 13.2a2 2 0 0 1-2 2.3H7.6a2 2 0 0 1-2-2.3z"/><path d="M11 13V9a5 5 0 0 1 10 0v4"/><path d="M14 18h4"/></svg>';
 const ICON_HELP = '<svg viewBox="0 0 32 32"><circle cx="16" cy="16" r="11.5"/><path d="M12.4 12.6a3.8 3.8 0 1 1 5.4 3.4c-1.2.7-1.8 1.4-1.8 2.8"/><path d="M16 22.4v.2"/></svg>';
+const ICON_VOICE = '<svg viewBox="0 0 32 32"><path d="M6 13h5l7-6v18l-7-6H6z"/><path class="w" d="M22 12.5a5 5 0 0 1 0 7"/><path class="w" d="M25 9.5a9.5 9.5 0 0 1 0 13"/><path class="slash" d="M6 6l20 20"/></svg>';
 const FLOR = '<svg class="flor %C" viewBox="0 0 26 26"><path d="M2 24V11C2 6 6 2 11 2h13"/><path d="M6 24V13c0-3.3 3.7-7 7-7h11"/><circle cx="6" cy="6" r="1.4"/></svg>';
 
 export interface HudHooks {
@@ -18,6 +20,10 @@ export interface HudHooks {
   onPanel?: () => void;
   /** Sale una letra del diálogo de `name` (para el "blip" de voz). */
   onVoice?: (name: string) => void;
+  /** Lee `text` en voz alta con la voz de `who` (nombre del personaje; '' = narrador). Null si la voz está apagada. */
+  speak?: (who: string, text: string, ev?: SpeakEvents) => Utterance | null;
+  /** Se tocó el botón del parlante. */
+  onVoiceToggle?: () => void;
 }
 
 export const el = <K extends keyof HTMLElementTagNameMap>(tag: K, cls = '', html = ''): HTMLElementTagNameMap[K] => {
@@ -39,6 +45,9 @@ export class Hud {
   private modal: Modal | null = null;
   private toastEl: HTMLElement;
   private toastT = 0;
+  private voiceBtn: HTMLButtonElement;
+  /** Línea de diálogo en curso (para cortar la voz si se apaga a mitad). */
+  private live: { mute: () => void } | null = null;
 
   constructor(
     private roots: { hud: HTMLElement; panels: HTMLElement; tags: HTMLElement },
@@ -62,6 +71,12 @@ export class Hud {
       bar.appendChild(b);
       this.buttons[id] = b;
     }
+    this.voiceBtn = el('button', 'voice-btn', ICON_VOICE);
+    this.voiceBtn.title = 'Leer en voz alta (V)';
+    this.voiceBtn.setAttribute('aria-label', 'Leer en voz alta (V)');
+    this.voiceBtn.style.display = 'none';
+    this.voiceBtn.addEventListener('click', () => hooks.onVoiceToggle?.());
+    bar.appendChild(this.voiceBtn);
     wrap.append(this.objective, bar);
     roots.hud.appendChild(wrap);
     this.tag = el('div', 'tag');
@@ -103,6 +118,14 @@ export class Hud {
     }
   }
 
+  /** Muestra el botón del parlante (sólo si el navegador sabe hablar) y su estado; al apagar corta la voz en curso. */
+  setVoice(supported: boolean, on: boolean): void {
+    this.voiceBtn.style.display = supported ? '' : 'none';
+    this.voiceBtn.classList.toggle('off', !on);
+    this.voiceBtn.setAttribute('aria-pressed', String(on));
+    if (!on) this.live?.mute();
+  }
+
   setNew(btn: 'journal' | 'bag', on: boolean): void {
     this.buttons[btn].classList.toggle('new', on);
   }
@@ -128,9 +151,10 @@ export class Hud {
   }
 
   // ------------------------------------------------------------------ paneles
-  private read(panel: HTMLElement, opts: Parameters<Hud['open']>[1]): Promise<void> {
+  private read(panel: HTMLElement, opts: Parameters<Hud['open']>[1], speak?: string): Promise<void> {
     this.hooks.onPanel?.();
-    return this.open(panel, opts);
+    const utt = speak ? (this.hooks.speak?.('', speak) ?? null) : null;
+    return this.open(panel, opts).then(() => utt?.stop());
   }
 
   private open(panel: HTMLElement, opts: { bottom?: boolean; dim?: boolean; action: (a: Action, close: () => void) => void; clickClose?: boolean }): Promise<void> {
@@ -165,20 +189,24 @@ export class Hud {
     return p;
   }
 
-  /** Inscripción de una lápida o cartel: "AQUÍ YACE / NOMBRE / ─◆─ / texto". */
+  /** Inscripción de una lápida o cartel: "AQUÍ YACE / NOMBRE / ─◆─ / texto". Se lee en voz alta. */
   inscription(o: { kicker: string; name: string; lines: string[] }): Promise<void> {
     const body = o.lines.map((l) => `<p>${l}</p>`).join('');
     const p = this.frame('', `<div class="kicker">${o.kicker}</div><div class="name">${o.name}</div><div class="rule"><i></i><b></b><i></i></div><div class="body">${body}</div>`);
-    return this.read(p, { dim: true, clickClose: true, action: (a, close) => (a === 'close' || a === 'interact') && close() });
+    return this.read(p, { dim: true, clickClose: true, action: (a, close) => (a === 'close' || a === 'interact') && close() }, `${o.kicker}. ${o.name}. ${o.lines.join(' ')}`);
   }
 
-  /** Línea de diálogo con máquina de escribir: un toque completa el texto, otro avanza. */
+  /**
+   * Línea de diálogo con máquina de escribir: un toque completa el texto, otro avanza. Si la voz está encendida la
+   * lee con la voz del personaje y el texto aparece al ritmo de la voz (sin adelantarse a las palabras).
+   */
   say(name: string, text: string): Promise<void> {
     const p = this.frame('talk', `<div class="name">${name}</div><div class="body"></div><div class="more">▸ continuar</div>`, false);
     const body = p.querySelector('.body') as HTMLElement;
     const more = p.querySelector('.more') as HTMLElement;
     more.style.visibility = 'hidden';
     let shown = 0;
+    let limit = Infinity; // hasta dónde deja llegar la voz, si informa dónde está (límites de palabra)
     let timer = 0;
     const finish = () => {
       window.clearInterval(timer);
@@ -186,23 +214,31 @@ export class Hud {
       body.textContent = text;
       more.style.visibility = 'visible';
     };
+    const utt = this.hooks.speak?.(name, text, { onBoundary: (f) => (limit = Math.ceil(f * text.length)), onEnd: finish }) ?? null;
     timer = window.setInterval(() => {
-      shown += 1;
+      if (shown < limit) shown += 1;
       body.textContent = text.slice(0, shown);
-      if (shown % 2 === 1 && text[shown - 1] !== ' ') this.hooks.onVoice?.(name);
+      if (!utt && shown % 2 === 1 && text[shown - 1] !== ' ') this.hooks.onVoice?.(name);
       if (shown >= text.length) finish();
-    }, 22);
+    }, utt ? utt.msPerChar : 22);
+    this.live = { mute: () => { utt?.stop(); finish(); } };
     const done = this.open(p, { bottom: true, action: (a, close) => (a === 'interact' || a === 'close') && (shown < text.length ? finish() : close()) });
     p.addEventListener('click', () => this.modal?.action('interact'));
-    return done.then(() => window.clearInterval(timer));
+    return done.then(() => {
+      window.clearInterval(timer);
+      utt?.stop();
+      this.live = null;
+    });
   }
 
-  /** Opciones numeradas; resuelve con el índice elegido. */
+  /** Opciones numeradas (se leen en voz alta); resuelve con el índice elegido. */
   choose(prompt: string | null, options: string[]): Promise<number> {
     const head = prompt ? `<div class="body">${prompt}</div>` : '';
     const list = options.map((o, i) => `<button data-i="${i}"><span class="n">${i + 1}</span>${o}</button>`).join('');
     const p = this.frame('talk', `${head}<div class="choices">${list}</div>`, false);
     let picked = 0;
+    const words = ['Uno', 'Dos', 'Tres', 'Cuatro', 'Cinco'];
+    const utt = this.hooks.speak?.('Vos', options.map((o, i) => `${words[i] ?? i + 1}. ${o}`).join(' ')) ?? null;
     const done = this.open(p, { bottom: true, action: () => undefined });
     p.querySelectorAll<HTMLButtonElement>('.choices button').forEach((b) =>
       b.addEventListener('click', (e) => {
@@ -211,7 +247,10 @@ export class Hud {
         this.modal?.close();
       }),
     );
-    return done.then(() => picked);
+    return done.then(() => {
+      utt?.stop();
+      return picked;
+    });
   }
 
   /** Lista (diario, bolso): cada ítem con título, nota y estado. */
@@ -221,10 +260,10 @@ export class Hud {
     return this.read(p, { dim: true, clickClose: true, action: (a, close) => (a === 'close' || a === 'interact') && close() });
   }
 
-  /** Panel libre (ayuda, tarjetas de título y de final). */
-  page(kicker: string, title: string, html: string): Promise<void> {
+  /** Panel libre (ayuda, tarjetas de título y de final). `speak` = leerlo en voz alta. */
+  page(kicker: string, title: string, html: string, speak = true): Promise<void> {
     const p = this.frame('', `<div class="kicker">${kicker}</div><div class="name">${title}</div><div class="rule"><i></i><b></b><i></i></div><div class="body">${html}</div><div class="more">▸ tocá para seguir</div>`);
-    return this.read(p, { dim: true, clickClose: true, action: (a, close) => (a === 'close' || a === 'interact') && close() });
+    return this.read(p, { dim: true, clickClose: true, action: (a, close) => (a === 'close' || a === 'interact') && close() }, speak ? `${kicker}. ${title}. ${html}` : undefined);
   }
 
   close(): void {

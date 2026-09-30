@@ -1,5 +1,6 @@
 import type { App } from '../core/app';
 import type { Sound } from '../core/audio';
+import type { Speech } from '../core/speech';
 import type { Effect } from '../core/post';
 import { moonPool } from '../gfx/sky';
 import { el } from './hud';
@@ -16,6 +17,7 @@ interface Saved {
   res: string;
   sound: boolean;
   moon?: boolean;
+  voice?: { on: boolean; rate: number; uri: string };
 }
 
 const KEY = 'haunted.tools.v1';
@@ -53,10 +55,11 @@ export class Tools {
     root: HTMLElement,
     private app: App,
     private sound: Sound,
+    private speech: Speech,
   ) {
     this.persist = !new URLSearchParams(location.search).has('nosave');
     const s = this.persist ? read() : {};
-    this.saved = { fx: s.fx ?? {}, exposure: s.exposure ?? app.renderer.toneMappingExposure, bloom: s.bloom ?? app.post.bloomBase, res: s.res ?? 'auto', sound: s.sound ?? true };
+    this.saved = { fx: s.fx ?? {}, exposure: s.exposure ?? app.renderer.toneMappingExposure, bloom: s.bloom ?? app.post.bloomBase, res: s.res ?? 'auto', sound: s.sound ?? true, voice: s.voice };
     this.applyAll();
 
     const btn = el('button', 'tools-btn', '▸ Herramientas');
@@ -86,6 +89,7 @@ export class Tools {
     app.setResolution(saved.res === 'auto' ? null : Number(saved.res));
     if (saved.moon !== undefined) moonPool.uPool.value.w = saved.moon ? 1 : 0;
     this.sound.setMuted(!saved.sound);
+    if (saved.voice) this.speech.set({ enabled: saved.voice.on, rate: saved.voice.rate, voiceURI: saved.voice.uri });
   }
 
   private row(label: string, control: HTMLElement): HTMLElement {
@@ -182,6 +186,62 @@ export class Tools {
       snd.blur();
     });
     panel.appendChild(this.row('Sonido', snd));
+    this.buildVoice();
+  }
+
+  /** Filas de la lectura en voz alta: encender, velocidad, elegir voz y probarla. */
+  private buildVoice(): void {
+    const { panel, speech } = this;
+    panel.appendChild(el('div', 'sep'));
+    if (!speech.supported) {
+      panel.appendChild(el('div', 'fps', 'Este navegador no puede leer en voz alta.'));
+      return;
+    }
+    const on = el('input');
+    on.type = 'checkbox';
+    on.addEventListener('change', () => {
+      speech.set({ enabled: on.checked });
+      on.blur();
+    });
+    panel.appendChild(this.row('Leer en voz alta (V)', on));
+
+    const rate = el('input');
+    rate.type = 'range';
+    Object.assign(rate, { min: '0.7', max: '1.3', step: '0.05' });
+    rate.addEventListener('input', () => speech.set({ rate: Number(rate.value) }));
+    rate.addEventListener('change', () => rate.blur());
+    panel.appendChild(this.row('Velocidad de la voz', rate));
+
+    const voice = el('select', 'voice');
+    voice.addEventListener('change', () => {
+      speech.set({ voiceURI: voice.value });
+      voice.blur();
+    });
+    panel.appendChild(this.row('Voz', voice));
+
+    const test = el('button', 'test', '▸ Probar voces');
+    test.addEventListener('click', () => {
+      speech.unlock();
+      speech.set({ enabled: true });
+      speech.sample();
+      test.blur();
+    });
+    panel.appendChild(test);
+
+    // refleja el estado de la voz (también cuando cambia con la tecla V o el botón del parlante) y lo recuerda
+    const sync = () => {
+      on.checked = speech.enabled;
+      rate.value = String(speech.rate);
+      const cur = speech.voiceURI;
+      voice.textContent = '';
+      voice.add(new Option('Automática (la más clara)', 'auto', false, cur === 'auto'));
+      for (const v of speech.voices()) voice.add(new Option(v.name.replace(/^Microsoft /, ''), v.voiceURI, false, cur === v.voiceURI));
+      voice.value = [...voice.options].some((o) => o.value === cur) ? cur : 'auto';
+      this.saved.voice = { on: speech.enabled, rate: speech.rate, uri: speech.voiceURI };
+      this.save();
+    };
+    speech.onChange(sync);
+    sync();
   }
 
   /** Actualiza el contador de fps (medio segundo de promedio). */

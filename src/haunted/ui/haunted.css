@@ -439,3 +439,39 @@ body.touch .tag .key { display: none; }
 .tools-panel input[type='range'] { width: 120px; accent-color: #c9a968; }
 .tools-panel select { background: #1a1714; color: var(--parchment); border: 1px solid var(--gold-soft); border-radius: 6px; padding: 3px 6px; font-family: var(--serif); }
 .tools-panel .fps { color: var(--parchment-dim); font-size: 12px; margin-top: 6px; }
+
+/* ------------------------------------------------------------------ voz (lectura de diálogos) y pantalla de inicio */
+.bar-wrap .bar button.voice-btn .slash { display: none; }
+.bar-wrap .bar button.voice-btn.off .slash { display: block; stroke: #d07a62; }
+.bar-wrap .bar button.voice-btn.off .w { display: none; }
+.bar-wrap .bar button.voice-btn.off svg { opacity: 0.75; }
+.tools-panel .sep { border-top: 1px solid rgba(201, 169, 104, 0.25); margin: 8px 0 4px; }
+.tools-panel select.voice { max-width: 150px; }
+.tools-panel button.test {
+  width: 100%;
+  margin-top: 6px;
+  padding: 5px 10px;
+  background: #1a1714;
+  color: var(--parchment);
+  border: 1px solid var(--gold-soft);
+  border-radius: 6px;
+  font-family: var(--serif);
+  font-size: 14px;
+  cursor: pointer;
+}
+.tools-panel button.test:hover { border-color: var(--gold); }
+#loading .go {
+  display: none;
+  margin-top: 22px;
+  font-size: 17px;
+  color: var(--gold);
+  letter-spacing: 0.05em;
+  animation: go-pulse 1.6s ease-in-out infinite;
+}
+#loading.ready .go { display: block; }
+#loading.ready .bar,
+#loading.ready .msg { display: none; }
+@keyframes go-pulse {
+  0%, 100% { opacity: 0.45; }
+  50% { opacity: 1; }
+}

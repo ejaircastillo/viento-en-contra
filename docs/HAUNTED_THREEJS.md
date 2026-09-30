@@ -86,6 +86,26 @@ Además la **resolución es dinámica**: si el promedio cae por debajo de 40 fps
 nuevo, despacio, cuando sobra margen; se desactiva con `?pr=` o `?timer`, o eligiendo una resolución fija en «Herramientas».
 El build separa las dos páginas: el bundle de three.js (~200 kB gzip) sólo se descarga en `haunted.html`.
 
+## Voz: lectura de los diálogos
+
+Los diálogos, las opciones, las lápidas y las tarjetas de título y de final se leen en voz alta con la síntesis de voz del navegador
+(Web Speech API, `core/speech.ts`): sin archivos, sin claves y sin conexión, con las voces del sistema.
+
+- **Un registro por personaje**: narrador y opciones con voz femenina si la hay, Don Huesos grave y pausado, Lutin agudo y rápido, Pelusa muy
+  aguda. Con una sola voz instalada se diferencian por tono y velocidad (`PERSONAS`).
+- **La voz más clara**: `voiceScore` prefiere es-AR, luego el español latino, las voces neuronales «Natural» de Edge y las de Google, y descarta
+  las que no son en español. En «Herramientas» se puede elegir otra voz, cambiar la velocidad y probarlas.
+- **Texto y voz juntos**: la máquina de escribir no se adelanta a la voz (usa los límites de palabra que informa la síntesis; si no los informa,
+  sigue una duración estimada). Un toque completa el texto; el siguiente corta la voz y pasa a la línea que sigue.
+- **Controles**: tecla `V`, botón del parlante en la barra o «Herramientas» (la elección se recuerda). Con la voz encendida se apagan los «blips» de
+  los diálogos.
+- **Pantalla de inicio**: ahora pide un toque o una tecla antes de empezar. Los navegadores no dejan hablar ni sonar antes de un gesto, y así la
+  primera tarjeta ya se lee. Con `?skipintro` no aparece.
+- **Límites**: la calidad depende de las voces instaladas (Windows sin paquete de voz en español no tiene voz; Edge trae las «Natural», iOS y macOS
+  traen las suyas). Si el navegador no soporta síntesis, el botón no aparece y todo sigue como antes. Las voces de red de Google se cortan solas a
+  los ~15 s: se mantienen vivas con pausa y reanudación. No se pudo *escuchar* en la sesión de desarrollo: se verificó por los eventos de la
+  síntesis (inicio, palabras, fin) con las voces Raúl y Sabina de Windows.
+
 ## La misión (≈5 minutos)
 
 0. Hablar con **Don Huesos** junto al fuego (te da una vela de trámites).
@@ -107,16 +127,17 @@ Para QA desde la consola: `__game` (juego) y `__app` (renderer, cámara, postpro
 
 ## Pruebas
 
-`tests/haunted.test.ts` (Vitest, sin navegador): colisiones, ruido con semilla, niveles de calidad, cámara, **la misión completa
+`tests/haunted.test.ts` y `tests/speech.test.ts` (Vitest, sin navegador; la voz se prueba con una síntesis de mentira): colisiones, ruido con semilla, niveles de calidad, cámara, **la misión completa
 con un host de mentira** (etapas 0→4, una conversación a la vez, lápidas) y validez del guion (personajes, acciones y largos).
 Lo visual se verificó a mano en el navegador integrado de Claude (calidades baja y alta, escritorio y 375×812), con las
 salvedades de abajo.
 
 ## Límites conocidos y próximos pasos
 
-- Sólo se probó en un navegador con WebGL por software (~32 fps, pestaña oculta que frena los temporizadores): falta medir en
-  un teléfono real y en una GPU dedicada, y ajustar el pool de luces y el costo del bloom ahí.
-- El sonido (viento, fuego, búho, voces, sellos) es procedural y **no se pudo escuchar** en la sesión de desarrollo: conviene afinar
+- Sólo se probó en el navegador integrado de Claude: al principio con WebGL por software (~32 fps, pestaña oculta que frena los
+  temporizadores) y después con una GPU real (~58 fps en calidad alta, 2542×1274 px a ×1,5). Falta medir en un teléfono real y en GPU
+  integradas, y ajustar ahí el pool de luces y el costo del bloom.
+- El sonido (viento, fuego, búho, blips, sellos) y la voz son cosas que **no se pudieron escuchar** en la sesión de desarrollo: conviene afinar
   volúmenes con auriculares. Arranca con el primer toque o tecla (política de autoplay) y se silencia desde «Herramientas».
 - No hay guardado de la partida (es una demo de 5 minutos); los ajustes de «Herramientas» sí se recuerdan.
 - Los personajes y la perra son geometría procedural: para arte final conviene reemplazarlos por modelos glTF (la interfaz

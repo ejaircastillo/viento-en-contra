@@ -119,8 +119,10 @@ Es independiente del juego 2D: no usa Phaser y se descarga aparte.
 - **Cuento** (≈5 min): sos un fantasma que espera su Certificado de Descanso Eterno. Don Huesos, Pelusa (perra fantasma) y Lutin
   (escribano de la cripta) te mandan a buscar un sello oxidado. Sátira de mecanismos, sin personas reales.
 - **Controles**: WASD o flechas (en el celular, arrastrar), clic o toque para caminar, `E` / Espacio / tocar la etiqueta para
-  interactuar, `J` diario, `B` bolso, `H` ayuda, `Esc` cerrar.
-- **Herramientas** (botón arriba a la derecha): fps, calidad, resolución, efectos, exposición y sonido.
+  interactuar, `J` diario, `B` bolso, `H` ayuda, `V` voz, `Esc` cerrar.
+- **Voz**: los diálogos, las lápidas y las tarjetas se leen en voz alta con la síntesis de voz del navegador (sin archivos; un registro por
+  personaje). Se apaga con `V`, con el parlante de la barra o en «Herramientas», donde también se elige la voz y la velocidad.
+- **Herramientas** (botón arriba a la derecha): fps, calidad, resolución, efectos, exposición, sonido y voz.
 - Todo es procedural (geometría, texturas y sonido): no hay archivos que descargar.
 
 Ejecutar: `npm run dev` y abrir `http://localhost:5178/haunted.html` (en el build queda en `dist/haunted.html`).

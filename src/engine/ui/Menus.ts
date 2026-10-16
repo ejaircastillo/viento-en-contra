@@ -1,4 +1,5 @@
 import { h, richText, wait } from './dom';
+import { drawEscena } from '../../promo/scene';
 import type { AudioEngine } from '../audio/AudioEngine';
 import type { Settings } from '../save/SaveSystem';
 
@@ -22,6 +23,30 @@ export interface TitleChapter {
 }
 
 export type TitleChoice = { kind: 'continue' } | { kind: 'chapter'; id: string };
+
+let escenaFondo: HTMLCanvasElement | null = null;
+
+/**
+ * Fondo de las pantallas de título: la escena isométrica del anuncio (generadores del juego) con velo.
+ * Si el dibujo falla, la pantalla se muestra igual, sin fondo.
+ */
+function fondoTitulo(): HTMLElement[] {
+  try {
+    const base = (escenaFondo ??= drawEscena().toCanvas(1));
+    const cv = h('canvas', {
+      class: 'title-bg',
+      attrs: { width: String(base.width), height: String(base.height), 'aria-hidden': 'true' },
+    });
+    const ctx = cv.getContext('2d');
+    if (ctx) {
+      ctx.imageSmoothingEnabled = false;
+      ctx.drawImage(base, 0, 0);
+    }
+    return [h('div', { class: 'title-fondo', attrs: { 'aria-hidden': 'true' } }, [cv, h('div', { class: 'title-velo' })])];
+  } catch {
+    return [];
+  }
+}
 
 /** Pantallas: título, selección de personaje, pausa, "Continuará", tarjetas y carga. */
 export class Menus {
@@ -60,7 +85,11 @@ export class Menus {
   /** Primera pantalla: un toque desbloquea el audio (requisito de los navegadores). */
   tapToStart(): Promise<void> {
     return new Promise((resolve) => {
-      const scr = h('div', { class: 'screen dim' }, [this.titleBlock(), h('div', { class: 'tap-start', text: 'Tocá para empezar' })]);
+      const scr = h('div', { class: 'screen dim title-screen' }, [
+        ...fondoTitulo(),
+        this.titleBlock(),
+        h('div', { class: 'tap-start', text: 'Tocá para empezar' }),
+      ]);
       const go = (e: Event) => {
         e.preventDefault();
         window.removeEventListener('keydown', key);
@@ -97,7 +126,7 @@ export class Menus {
         opts.cont ? this.btn(opts.cont.label, 'primary', () => close({ kind: 'continue' })) : null,
         ...opts.chapters.map((c, i) => chapterBtn(c, !opts.cont && i === 0)),
       ]);
-      const scr = h('div', { class: 'screen dim' }, [this.titleBlock(), col]);
+      const scr = h('div', { class: 'screen dim title-screen' }, [...fondoTitulo(), this.titleBlock(), col]);
       this.root.appendChild(scr);
       if (this.auto) window.setTimeout(() => close({ kind: 'chapter', id: opts.autoId }), 300);
     });

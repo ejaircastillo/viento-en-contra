@@ -1,0 +1,150 @@
+/* Reel de anuncio: 9:16, tipografía y colores del juego (ver src/styles/game.css :root). */
+
+:root {
+  --ink: #0c0f13;
+  --text: #eef2f4;
+  --ok: #7ee08f;
+  --azul: #2f6fb3;
+  --azul-sombra: #173f68;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+  background: #101318;
+  font-family: 'Pixelify Sans', ui-monospace, 'Courier New', monospace;
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  display: grid;
+  place-items: center;
+  min-height: 100vh;
+  overflow: hidden;
+}
+
+.reel {
+  position: relative;
+  width: min(100vw, 56.25vh);
+  aspect-ratio: 9 / 16;
+  overflow: hidden;
+  container-type: inline-size;
+  background: radial-gradient(120% 70% at 50% 18%, #3d4653 0%, #1b2027 62%, #101318 100%);
+}
+
+.escena {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  image-rendering: pixelated;
+}
+
+.velo {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    180deg,
+    rgba(12, 15, 19, 0.55) 0%,
+    rgba(12, 15, 19, 0) 20%,
+    rgba(12, 15, 19, 0) 42%,
+    rgba(12, 15, 19, 0.72) 60%,
+    rgba(12, 15, 19, 0.96) 84%
+  );
+}
+
+.insignia {
+  position: absolute;
+  top: 3.5cqi;
+  right: 4cqi;
+  width: 17cqi;
+  height: auto;
+  filter: drop-shadow(0 0.6cqi 0 rgba(0, 0, 0, 0.35));
+}
+
+.subtitulo {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 54%;
+  margin: 0;
+  text-align: center;
+}
+
+.linea {
+  display: block;
+  margin: 0;
+  font-weight: 700;
+  font-size: 9.6cqi;
+  line-height: 1.06;
+  color: var(--text);
+  -webkit-text-stroke: 1.2cqi var(--ink);
+  paint-order: stroke fill;
+  text-shadow: 0 1cqi 0 var(--ink);
+}
+
+.linea.verde {
+  color: var(--ok);
+}
+
+.pie {
+  position: absolute;
+  left: 6cqi;
+  right: 6cqi;
+  bottom: 5cqi;
+  display: grid;
+  gap: 2.6cqi;
+}
+
+.marca {
+  display: flex;
+  align-items: center;
+  gap: 2.4cqi;
+}
+
+.marca .avatar {
+  width: 10cqi;
+  height: auto;
+  flex: none;
+}
+
+.marca b {
+  display: block;
+  font-size: 5cqi;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.marca span {
+  display: block;
+  font-size: 3.6cqi;
+  color: #9aa7b3;
+}
+
+.texto {
+  margin: 0;
+  font-size: 4.2cqi;
+  line-height: 1.25;
+  color: #dfe6ec;
+}
+
+.jugar {
+  display: block;
+  padding: 2.8cqi 0;
+  border-radius: 2cqi;
+  background: var(--azul);
+  box-shadow: 0 1cqi 0 var(--azul-sombra);
+  color: #fff;
+  font-size: 6.4cqi;
+  font-weight: 700;
+  text-align: center;
+  text-decoration: none;
+}
+
+.jugar:focus-visible {
+  outline: 0.6cqi solid var(--ok);
+  outline-offset: 0.6cqi;
+}

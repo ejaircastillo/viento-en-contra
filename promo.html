@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="es-AR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="robots" content="noindex" />
+    <title>Viento en Contra · Reel de anuncio</title>
+  </head>
+  <body>
+    <!-- Insignia reutilizable (escudo con viento). Sólo para la página de anuncio; no forma parte del juego. -->
+    <svg width="0" height="0" style="position: absolute" aria-hidden="true">
+      <symbol id="escudo" viewBox="0 0 100 100">
+        <path
+          d="M50 4 L92 17 V49 C92 73 73 89 50 97 C27 89 8 73 8 49 V17 Z"
+          fill="#2e3e62"
+          stroke="#f2a444"
+          stroke-width="5"
+          stroke-linejoin="round"
+        />
+        <text
+          x="50"
+          y="30"
+          text-anchor="middle"
+          font-family="Pixelify Sans, monospace"
+          font-weight="700"
+          font-size="12"
+          fill="#eef2f4"
+        >
+          VIENTO
+        </text>
+        <path d="M18 50 H60 A10 10 0 1 0 50 40" fill="none" stroke="#eef2f4" stroke-width="5" stroke-linecap="round" />
+        <path d="M26 66 H66 A8 8 0 1 1 58 74" fill="none" stroke="#7ee08f" stroke-width="5" stroke-linecap="round" />
+      </symbol>
+    </svg>
+
+    <main class="reel">
+      <canvas class="escena" id="escena" width="180" height="320" aria-hidden="true"></canvas>
+      <div class="velo" aria-hidden="true"></div>
+
+      <svg class="insignia" viewBox="0 0 100 100" role="img" aria-label="Viento en Contra">
+        <use href="#escudo" />
+      </svg>
+
+      <div class="subtitulo">
+        <p class="linea verde">Un solo sello<br />de menos</p>
+        <p class="linea">y todo se frena.</p>
+      </div>
+
+      <footer class="pie">
+        <div class="marca">
+          <svg class="avatar" viewBox="0 0 100 100" aria-hidden="true">
+            <use href="#escudo" />
+          </svg>
+          <div>
+            <b>Viento en Contra</b>
+            <span>Publicidad</span>
+          </div>
+        </div>
+        <p class="texto">¡Empezá tu día! Aventura satírica en pixel art isométrico. Dos días de paro en Río Gallegos.</p>
+        <a class="jugar" href="./">Jugar</a>
+      </footer>
+    </main>
+
+    <script type="module" src="/src/promo/reel.ts"></script>
+  </body>
+</html>
